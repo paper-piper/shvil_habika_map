@@ -25,6 +25,19 @@ function fmtKm(km) {
 function safeStr(v) { return (v ?? "").toString().trim(); }
 function segColor(seg) { return SEG_COLORS[seg] || FALLBACK_COLOR; }
 
+const SEGMENT_META = [
+  { segment: 1, title: "שם מקטע 1", summary: "תיאור קצר למקטע 1 (מידע נוסף יתווסף בהמשך)." },
+  { segment: 2, title: "שם מקטע 2", summary: "תיאור קצר למקטע 2 (מידע נוסף יתווסף בהמשך)." },
+  { segment: 3, title: "שם מקטע 3", summary: "תיאור קצר למקטע 3 (מידע נוסף יתווסף בהמשך)." },
+  { segment: 4, title: "שם מקטע 4", summary: "תיאור קצר למקטע 4 (מידע נוסף יתווסף בהמשך)." },
+  { segment: 5, title: "שם מקטע 5", summary: "תיאור קצר למקטע 5 (מידע נוסף יתווסף בהמשך)." },
+  { segment: 6, title: "שם מקטע 6", summary: "תיאור קצר למקטע 6 (מידע נוסף יתווסף בהמשך)." },
+];
+
+function getSegmentMeta(seg) {
+  return SEGMENT_META.find(item => Number(item.segment) === Number(seg));
+}
+
 async function headOk(url) {
   try {
     const res = await fetch(url, { method: "HEAD", cache: "no-store" });
@@ -103,39 +116,54 @@ function buildSegList(segmentsIndex, selectSegment) {
   const segListEl = $("segList");
   segListEl.innerHTML = "";
 
-  segmentsIndex.forEach(s => {
+  SEGMENT_META.forEach(meta => {
+    const entry = segmentsIndex.find(s => Number(s.segment) === Number(meta.segment));
     const div = document.createElement("div");
-    div.className = "segItem";
-    div.dataset.segment = s.segment;
+    div.className = "segCard";
+    div.dataset.segment = meta.segment;
 
-    const sw = document.createElement("div");
-    sw.className = "swatch";
-    sw.style.background = segColor(s.segment);
+    const image = document.createElement("div");
+    image.className = "segImage";
+    image.textContent = "תמונה";
 
-    const mid = document.createElement("div");
-    const name = document.createElement("div");
-    name.className = "segName";
-    name.textContent = `מקטע ${s.segment}`;
-    const meta = document.createElement("div");
-    meta.className = "segMeta";
-    meta.textContent = `אורך: ${fmtKm(s.lengthKm)}`;
-    mid.appendChild(name); mid.appendChild(meta);
+    const content = document.createElement("div");
+    content.className = "segContent";
 
-    const right = document.createElement("div");
-    right.className = "segRight";
-    right.textContent = "זום";
+    const title = document.createElement("div");
+    title.className = "segTitle";
+    title.textContent = `מקטע ${meta.segment} — ${meta.title}`;
 
-    div.appendChild(sw);
-    div.appendChild(mid);
-    div.appendChild(right);
+    const subtitle = document.createElement("div");
+    subtitle.className = "segSubtitle";
+    subtitle.textContent = `אורך משוער: ${fmtKm(entry?.lengthKm ?? NaN)}`;
 
-    div.addEventListener("click", () => selectSegment(s.segment, true));
+    const badge = document.createElement("div");
+    badge.className = "segBadge";
+
+    const swatch = document.createElement("span");
+    swatch.className = "segSwatch";
+    swatch.style.background = segColor(meta.segment);
+
+    const badgeText = document.createElement("span");
+    badgeText.textContent = "לחצו למידע נוסף וזום";
+
+    badge.appendChild(swatch);
+    badge.appendChild(badgeText);
+
+    content.appendChild(title);
+    content.appendChild(subtitle);
+    content.appendChild(badge);
+
+    div.appendChild(image);
+    div.appendChild(content);
+
+    div.addEventListener("click", () => selectSegment(meta.segment, true));
     segListEl.appendChild(div);
   });
 }
 
 function setActiveSegUI(seg) {
-  [...$("segList").querySelectorAll(".segItem")].forEach(el => {
+  [...$("segList").querySelectorAll(".segCard")].forEach(el => {
     el.classList.toggle("active", Number(el.dataset.segment) === Number(seg));
   });
 }
@@ -304,6 +332,9 @@ async function boot() {
       map.setFilter("trail-highlight", ["all", ["==", ["geometry-type"], "LineString"], ["==", ["get", "segment"], -9999]]);
     }
     $("selLenPill").textContent = "מקטע: —";
+    $("segDetailTitle").textContent = "בחרו מקטע להצגת מידע.";
+    $("segDetailMeta").textContent = "אורך: —";
+    $("segDetailText").textContent = "כאן יוצג מידע נוסף על המקטע שנבחר.";
     updateSubtitle("מוצג כל השביל.");
   }
 
@@ -320,6 +351,10 @@ async function boot() {
 
     const entry = segmentsIndex.find(s => Number(s.segment) === Number(seg));
     $("selLenPill").textContent = `מקטע ${seg}: ${fmtKm(entry?.lengthKm ?? NaN)}`;
+    const meta = getSegmentMeta(seg);
+    $("segDetailTitle").textContent = `מקטע ${seg} — ${meta?.title ?? "שם המקטע"}`;
+    $("segDetailMeta").textContent = `אורך משוער: ${fmtKm(entry?.lengthKm ?? NaN)}`;
+    $("segDetailText").textContent = meta?.summary ?? "מידע נוסף על המקטע יופיע כאן.";
 
     if (zoom && entry?.bbox) fitBounds(map, entry.bbox, 60);
     updateSubtitle(`נבחר מקטע ${seg}.`);
