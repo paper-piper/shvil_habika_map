@@ -4,18 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="62ef8bb0-066c-4c8b-92f3-87ee746a8848" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/shvilmap.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assests/app.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assests/config.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/assests/styles.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/trail.geojson" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+    <list default="true" id="62ef8bb0-066c-4c8b-92f3-87ee746a8848" name="Changes" comment="initial app">
+      <change afterPath="$PROJECT_DIR$/last_shvil_html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,6 +51,19 @@
       <option name="presentableId" value="Default" />
       <updated>1768551123385</updated>
     </task>
+    <task id="LOCAL‎-00001" summary="initial app">
+      <option name="closed" value="true" />
+      <created>1768592335355</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL‎-00001" />
+      <option name="project" value="LOCAL‎" />
+      <updated>1768592335355</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="initial app" />
+    <option name="LAST_COMMIT_MESSAGE" value="initial app" />
   </component>
 </project>
