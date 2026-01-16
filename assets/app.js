@@ -3,6 +3,7 @@ import {
   DATA_URL,
   GPX_URL,
   SEG_COLORS,
+  SEG_OUTLINE,
   FALLBACK_COLOR,
   LOAD_TIMEOUT_MS,
   DEFAULT_VIEW,
@@ -213,6 +214,19 @@ function initLayersOnce(map, trailData, selectSegment) {
   map.addSource("trail-src", { type: "geojson", data: trailData });
 
   map.addLayer({
+    id: "trail-halo",
+    type: "line",
+    source: "trail-src",
+    filter: ["==", ["geometry-type"], "LineString"],
+    layout: { "line-join": "round", "line-cap": "round" },
+    paint: {
+      "line-width": 6,
+      "line-opacity": 0.9,
+      "line-color": SEG_OUTLINE
+    }
+  });
+
+  map.addLayer({
     id: "trail-base",
     type: "line",
     source: "trail-src",
@@ -220,7 +234,7 @@ function initLayersOnce(map, trailData, selectSegment) {
     layout: { "line-join": "round", "line-cap": "round" },
     paint: {
       "line-width": 4,
-      "line-opacity": 0.9,
+      "line-opacity": 0.85,
       "line-color": [
         "case",
         ["has", "segment"],
@@ -233,7 +247,6 @@ function initLayersOnce(map, trailData, selectSegment) {
           4, segColor(4),
           5, segColor(5),
           6, segColor(6),
-          7, segColor(7),
           FALLBACK_COLOR
         ],
         FALLBACK_COLOR
@@ -250,18 +263,7 @@ function initLayersOnce(map, trailData, selectSegment) {
     paint: {
       "line-width": 7,
       "line-opacity": 0.95,
-      "line-color": [
-        "match",
-        ["get", "segment"],
-        1, segColor(1),
-        2, segColor(2),
-        3, segColor(3),
-        4, segColor(4),
-        5, segColor(5),
-        6, segColor(6),
-        7, segColor(7),
-        FALLBACK_COLOR
-      ]
+      "line-color": "#283518"
     }
   });
 
@@ -272,9 +274,9 @@ function initLayersOnce(map, trailData, selectSegment) {
     filter: ["==", ["geometry-type"], "Point"],
     paint: {
       "circle-radius": 6,
-      "circle-color": "#111827",
+      "circle-color": "#283518",
       "circle-stroke-width": 2,
-      "circle-stroke-color": "#ffffff"
+      "circle-stroke-color": "#FEFAE1"
     }
   });
 
@@ -347,7 +349,7 @@ async function boot() {
   function clearSegmentSelection() {
     setActiveSegUI(null);
     setSegmentMode(false);
-    if (map.getLayer("trail-base")) map.setPaintProperty("trail-base", "line-opacity", 0.9);
+    if (map.getLayer("trail-base")) map.setPaintProperty("trail-base", "line-opacity", 0.85);
     if (map.getLayer("trail-highlight")) {
       map.setFilter("trail-highlight", ["all", ["==", ["geometry-type"], "LineString"], ["==", ["get", "segment"], -9999]]);
     }

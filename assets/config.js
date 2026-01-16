@@ -4,15 +4,15 @@ export const DATA_URL = "./data/trail.geojson";
 export const GPX_URL  = "./data/trail.gpx";
 
 export const SEG_COLORS = {
-  1: "#1f77b4",
-  2: "#ff7f0e",
-  3: "#2ca02c",
-  4: "#d62728",
-  5: "#9467bd",
-  6: "#8c564b",
-  7: "#e377c2",
+  1: "#6F7D4E",
+  2: "#606C38",
+  3: "#BC6C25",
+  4: "#DDA25F",
+  5: "#4F5D2F",
+  6: "#8C4A1E",
 };
-export const FALLBACK_COLOR = "#17becf";
+export const SEG_OUTLINE = "#FEFAE1";
+export const FALLBACK_COLOR = "#606C38";
 
 export const LOAD_TIMEOUT_MS = 15000;
 
