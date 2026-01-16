@@ -169,11 +169,23 @@ function setActiveSegUI(seg) {
 }
 
 function setSegmentMode(isSingle) {
-  $("panel").classList.toggle("single-mode", isSingle);
   $("segFocus").classList.toggle("active", isSingle);
   $("segList").classList.toggle("hidden", isSingle);
   $("segDetails").classList.toggle("hidden", isSingle);
   $("segHint").classList.toggle("hidden", isSingle);
+}
+
+function applyPoiFilters(map) {
+  if (!map.getLayer("poi-layer")) return;
+
+  const typeVal = $("poiType").value;
+  const q = safeStr($("poiSearch").value).toLowerCase();
+
+  const filters = ["all", ["==", ["geometry-type"], "Point"]];
+  if (typeVal && typeVal !== "__all__") filters.push(["==", ["get", "type"], typeVal]);
+  if (q) filters.push([">=", ["index-of", q, ["downcase", ["coalesce", ["get", "name"], ""]]], 0]);
+
+  map.setFilter("poi-layer", filters);
 }
 
 function initLayersOnce(map, trailData, selectSegment) {
@@ -381,6 +393,10 @@ async function boot() {
     $("fitAllBtn").addEventListener("click", () => {
       clearSegmentSelection();
       if (wholeBbox) fitBounds(map, wholeBbox, 60);
+    });
+
+    $("segFocusBack").addEventListener("click", () => {
+      clearSegmentSelection();
     });
 
     $("segFocusBack").addEventListener("click", () => {
