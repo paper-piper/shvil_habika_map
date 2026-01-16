@@ -168,17 +168,12 @@ function setActiveSegUI(seg) {
   });
 }
 
-function applyPoiFilters(map) {
-  if (!map.getLayer("poi-layer")) return;
-
-  const typeVal = $("poiType").value;
-  const q = safeStr($("poiSearch").value).toLowerCase();
-
-  const filters = ["all", ["==", ["geometry-type"], "Point"]];
-  if (typeVal && typeVal !== "__all__") filters.push(["==", ["get", "type"], typeVal]);
-  if (q) filters.push([">=", ["index-of", q, ["downcase", ["coalesce", ["get", "name"], ""]]], 0]);
-
-  map.setFilter("poi-layer", filters);
+function setSegmentMode(isSingle) {
+  $("panel").classList.toggle("single-mode", isSingle);
+  $("segFocus").classList.toggle("active", isSingle);
+  $("segList").classList.toggle("hidden", isSingle);
+  $("segDetails").classList.toggle("hidden", isSingle);
+  $("segHint").classList.toggle("hidden", isSingle);
 }
 
 function initLayersOnce(map, trailData, selectSegment) {
@@ -302,13 +297,6 @@ async function boot() {
   map.addControl(new mapboxgl.NavigationControl(), "top-left");
   map.addControl(new mapboxgl.FullscreenControl(), "top-left");
 
-  const geolocate = new mapboxgl.GeolocateControl({
-    positionOptions: { enableHighAccuracy: true },
-    trackUserLocation: true,
-    showUserHeading: true
-  });
-  map.addControl(geolocate, "top-left");
-
   const gpxOk = await headOk(GPX_URL);
   const dlBtn = $("downloadGpxBtn");
   if (gpxOk) { dlBtn.style.display = "inline-flex"; dlBtn.href = GPX_URL; }
@@ -327,6 +315,7 @@ async function boot() {
 
   function clearSegmentSelection() {
     setActiveSegUI(null);
+    setSegmentMode(false);
     if (map.getLayer("trail-base")) map.setPaintProperty("trail-base", "line-opacity", 0.9);
     if (map.getLayer("trail-highlight")) {
       map.setFilter("trail-highlight", ["all", ["==", ["geometry-type"], "LineString"], ["==", ["get", "segment"], -9999]]);
@@ -335,11 +324,16 @@ async function boot() {
     $("segDetailTitle").textContent = "בחרו מקטע להצגת מידע.";
     $("segDetailMeta").textContent = "אורך: —";
     $("segDetailText").textContent = "כאן יוצג מידע נוסף על המקטע שנבחר.";
+    $("segFocusTitle").textContent = "בחרו מקטע להצגת מידע.";
+    $("segFocusMeta").textContent = "אורך: —";
+    $("segFocusText").textContent = "כאן יוצג מידע נוסף על המקטע שנבחר.";
+    $("segFocusSwatch").style.background = "transparent";
     updateSubtitle("מוצג כל השביל.");
   }
 
   function selectSegment(seg, zoom) {
     setActiveSegUI(seg);
+    setSegmentMode(true);
 
     if (map.getLayer("trail-highlight")) {
       map.setFilter("trail-highlight", ["all",
@@ -352,9 +346,17 @@ async function boot() {
     const entry = segmentsIndex.find(s => Number(s.segment) === Number(seg));
     $("selLenPill").textContent = `מקטע ${seg}: ${fmtKm(entry?.lengthKm ?? NaN)}`;
     const meta = getSegmentMeta(seg);
-    $("segDetailTitle").textContent = `מקטע ${seg} — ${meta?.title ?? "שם המקטע"}`;
-    $("segDetailMeta").textContent = `אורך משוער: ${fmtKm(entry?.lengthKm ?? NaN)}`;
-    $("segDetailText").textContent = meta?.summary ?? "מידע נוסף על המקטע יופיע כאן.";
+    const title = `מקטע ${seg} — ${meta?.title ?? "שם המקטע"}`;
+    const lengthText = `אורך משוער: ${fmtKm(entry?.lengthKm ?? NaN)}`;
+    const summaryText = meta?.summary ?? "מידע נוסף על המקטע יופיע כאן.";
+
+    $("segDetailTitle").textContent = title;
+    $("segDetailMeta").textContent = lengthText;
+    $("segDetailText").textContent = summaryText;
+    $("segFocusTitle").textContent = title;
+    $("segFocusMeta").textContent = lengthText;
+    $("segFocusText").textContent = summaryText;
+    $("segFocusSwatch").style.background = segColor(seg);
 
     if (zoom && entry?.bbox) fitBounds(map, entry.bbox, 60);
     updateSubtitle(`נבחר מקטע ${seg}.`);
@@ -373,51 +375,16 @@ async function boot() {
 
     buildSegList(segmentsIndex, selectSegment);
 
-    const types = Array.from(new Set(
-      trailData.features
-        .filter(f => f.geometry?.type === "Point")
-        .map(f => safeStr(f.properties?.type))
-        .filter(Boolean)
-    )).sort((a,b) => a.localeCompare(b, "he"));
-
-    const sel = $("poiType");
-    while (sel.options.length > 1) sel.remove(1);
-    for (const t of types) {
-      const opt = document.createElement("option");
-      opt.value = t; opt.textContent = t;
-      sel.appendChild(opt);
-    }
-
     initLayersOnce(map, trailData, selectSegment);
     if (wholeBbox) fitBounds(map, wholeBbox, 60);
-
-    $("poiType").addEventListener("change", () => applyPoiFilters(map));
-    $("poiSearch").addEventListener("input", () => applyPoiFilters(map));
-
-    $("clearFilters").addEventListener("click", () => {
-      $("poiType").value = "__all__";
-      $("poiSearch").value = "";
-      applyPoiFilters(map);
-      showToast("סינון נקודות נוקה.");
-    });
 
     $("fitAllBtn").addEventListener("click", () => {
       clearSegmentSelection();
       if (wholeBbox) fitBounds(map, wholeBbox, 60);
     });
 
-    $("locateBtn").addEventListener("click", () => {
-      try { geolocate.trigger(); }
-      catch { showToast("לא הצלחתי לקבל מיקום. בדוק הרשאות GPS בדפדפן."); }
-    });
-
-    $("resetBtn").addEventListener("click", () => {
+    $("segFocusBack").addEventListener("click", () => {
       clearSegmentSelection();
-      $("poiType").value = "__all__";
-      $("poiSearch").value = "";
-      applyPoiFilters(map);
-      if (wholeBbox) fitBounds(map, wholeBbox, 60);
-      showToast("אופס. חזרנו למצב ההתחלתי.");
     });
 
     const panelBody = $("panelBody");
@@ -427,9 +394,7 @@ async function boot() {
       panelBody.style.display = collapsed ? "none" : "block";
     });
 
-    applyPoiFilters(map);
-
-    updateSubtitle("מוכן. בחר מקטע או סנן נקודות.");
+    updateSubtitle("מוכן. בחר מקטע.");
     setLoading(false);
 
   } catch (err) {
