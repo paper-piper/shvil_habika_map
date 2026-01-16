@@ -72,13 +72,28 @@
       <div class="section">
         <div class="sectionTitle">
           <span>מקטעים</span>
-          <span class="hint">לחיצה על כרטיס תתמקד במקטע</span>
+          <span class="hint" id="segHint">לחיצה על כרטיס תתמקד במקטע</span>
         </div>
         <div class="segGrid" id="segList"></div>
         <div class="segDetails" id="segDetails">
           <div class="segDetailsTitle" id="segDetailTitle">בחרו מקטע להצגת מידע.</div>
           <div class="segDetailsMeta" id="segDetailMeta">אורך: —</div>
           <div class="segDetailsText" id="segDetailText">כאן יוצג מידע נוסף על המקטע שנבחר.</div>
+        </div>
+        <div class="segFocus" id="segFocus">
+          <div class="segFocusHeader">
+            <div class="segFocusImage" id="segFocusImage">תמונה</div>
+            <div class="segFocusInfo">
+              <div class="segFocusTitle" id="segFocusTitle">בחרו מקטע להצגת מידע.</div>
+              <div class="segFocusMeta" id="segFocusMeta">אורך: —</div>
+              <div class="segFocusBadge">
+                <span class="segSwatch" id="segFocusSwatch"></span>
+                <span>מידע נוסף</span>
+              </div>
+            </div>
+          </div>
+          <div class="segFocusText" id="segFocusText">כאן יוצג מידע נוסף על המקטע שנבחר.</div>
+          <button class="btn" id="segFocusBack">⬅ חזרה לכל המקטעים</button>
         </div>
       </div>
 

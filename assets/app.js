@@ -168,6 +168,13 @@ function setActiveSegUI(seg) {
   });
 }
 
+function setSegmentMode(isSingle) {
+  $("segFocus").classList.toggle("active", isSingle);
+  $("segList").classList.toggle("hidden", isSingle);
+  $("segDetails").classList.toggle("hidden", isSingle);
+  $("segHint").classList.toggle("hidden", isSingle);
+}
+
 function applyPoiFilters(map) {
   if (!map.getLayer("poi-layer")) return;
 
@@ -327,6 +334,7 @@ async function boot() {
 
   function clearSegmentSelection() {
     setActiveSegUI(null);
+    setSegmentMode(false);
     if (map.getLayer("trail-base")) map.setPaintProperty("trail-base", "line-opacity", 0.9);
     if (map.getLayer("trail-highlight")) {
       map.setFilter("trail-highlight", ["all", ["==", ["geometry-type"], "LineString"], ["==", ["get", "segment"], -9999]]);
@@ -335,11 +343,16 @@ async function boot() {
     $("segDetailTitle").textContent = "בחרו מקטע להצגת מידע.";
     $("segDetailMeta").textContent = "אורך: —";
     $("segDetailText").textContent = "כאן יוצג מידע נוסף על המקטע שנבחר.";
+    $("segFocusTitle").textContent = "בחרו מקטע להצגת מידע.";
+    $("segFocusMeta").textContent = "אורך: —";
+    $("segFocusText").textContent = "כאן יוצג מידע נוסף על המקטע שנבחר.";
+    $("segFocusSwatch").style.background = "transparent";
     updateSubtitle("מוצג כל השביל.");
   }
 
   function selectSegment(seg, zoom) {
     setActiveSegUI(seg);
+    setSegmentMode(true);
 
     if (map.getLayer("trail-highlight")) {
       map.setFilter("trail-highlight", ["all",
@@ -352,9 +365,17 @@ async function boot() {
     const entry = segmentsIndex.find(s => Number(s.segment) === Number(seg));
     $("selLenPill").textContent = `מקטע ${seg}: ${fmtKm(entry?.lengthKm ?? NaN)}`;
     const meta = getSegmentMeta(seg);
-    $("segDetailTitle").textContent = `מקטע ${seg} — ${meta?.title ?? "שם המקטע"}`;
-    $("segDetailMeta").textContent = `אורך משוער: ${fmtKm(entry?.lengthKm ?? NaN)}`;
-    $("segDetailText").textContent = meta?.summary ?? "מידע נוסף על המקטע יופיע כאן.";
+    const title = `מקטע ${seg} — ${meta?.title ?? "שם המקטע"}`;
+    const lengthText = `אורך משוער: ${fmtKm(entry?.lengthKm ?? NaN)}`;
+    const summaryText = meta?.summary ?? "מידע נוסף על המקטע יופיע כאן.";
+
+    $("segDetailTitle").textContent = title;
+    $("segDetailMeta").textContent = lengthText;
+    $("segDetailText").textContent = summaryText;
+    $("segFocusTitle").textContent = title;
+    $("segFocusMeta").textContent = lengthText;
+    $("segFocusText").textContent = summaryText;
+    $("segFocusSwatch").style.background = segColor(seg);
 
     if (zoom && entry?.bbox) fitBounds(map, entry.bbox, 60);
     updateSubtitle(`נבחר מקטע ${seg}.`);
@@ -418,6 +439,10 @@ async function boot() {
       applyPoiFilters(map);
       if (wholeBbox) fitBounds(map, wholeBbox, 60);
       showToast("אופס. חזרנו למצב ההתחלתי.");
+    });
+
+    $("segFocusBack").addEventListener("click", () => {
+      clearSegmentSelection();
     });
 
     const panelBody = $("panelBody");
