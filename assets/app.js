@@ -24,6 +24,25 @@ function fmtKm(km) {
 }
 function safeStr(v) { return (v ?? "").toString().trim(); }
 function segColor(seg) { return SEG_COLORS[seg] || FALLBACK_COLOR; }
+function segmentImageSrc(seg) {
+  const num = String(seg).padStart(2, "0");
+  return `./data/images/segment-${num}.jpg`;
+}
+
+function renderSegmentImage(container, seg, title) {
+  container.innerHTML = "";
+
+  const img = document.createElement("img");
+  img.src = segmentImageSrc(seg);
+  img.alt = title ? `מקטע ${seg} — ${title}` : `מקטע ${seg}`;
+  img.loading = "lazy";
+
+  img.addEventListener("error", () => {
+    container.textContent = "אין תמונה";
+  });
+
+  container.appendChild(img);
+}
 
 const SEGMENT_META = [
   { segment: 1, title: "ארץ המעיינות", summary: "זהו המקטע המהנה ביותר בשביל,ביקור במספר מעיינות יהפהיפיים עם פינות ישיבה וצל." },
@@ -124,7 +143,7 @@ function buildSegList(segmentsIndex, selectSegment) {
 
     const image = document.createElement("div");
     image.className = "segImage";
-    image.textContent = "תמונה";
+    renderSegmentImage(image, meta.segment, meta.title);
 
     const content = document.createElement("div");
     content.className = "segContent";
@@ -369,6 +388,7 @@ async function boot() {
     $("segFocusMeta").textContent = lengthText;
     $("segFocusText").textContent = summaryText;
     $("segFocusSwatch").style.background = segColor(seg);
+    renderSegmentImage($("segFocusImage"), seg, meta?.title);
 
     if (zoom && entry?.bbox) fitBounds(map, entry.bbox, 60);
     updateSubtitle(`נבחר מקטע ${seg}.`);
