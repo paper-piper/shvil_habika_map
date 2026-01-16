@@ -24,14 +24,18 @@ function fmtKm(km) {
 }
 function safeStr(v) { return (v ?? "").toString().trim(); }
 function segColor(seg) { return SEG_COLORS[seg] || FALLBACK_COLOR; }
+function segmentImageUrl(seg) {
+  const padded = String(seg).padStart(2, "0");
+  return `./data/images/segment-${padded}.jpg`;
+}
 
 const SEGMENT_META = [
-  { segment: 1, title: "שם מקטע 1", summary: "תיאור קצר למקטע 1 (מידע נוסף יתווסף בהמשך)." },
-  { segment: 2, title: "שם מקטע 2", summary: "תיאור קצר למקטע 2 (מידע נוסף יתווסף בהמשך)." },
-  { segment: 3, title: "שם מקטע 3", summary: "תיאור קצר למקטע 3 (מידע נוסף יתווסף בהמשך)." },
-  { segment: 4, title: "שם מקטע 4", summary: "תיאור קצר למקטע 4 (מידע נוסף יתווסף בהמשך)." },
-  { segment: 5, title: "שם מקטע 5", summary: "תיאור קצר למקטע 5 (מידע נוסף יתווסף בהמשך)." },
-  { segment: 6, title: "שם מקטע 6", summary: "תיאור קצר למקטע 6 (מידע נוסף יתווסף בהמשך)." },
+  { segment: 1, title: "שם מקטע 1", summary: "תיאור קצר למקטע 1 (מידע נוסף יתווסף בהמשך).", imageUrl: segmentImageUrl(1) },
+  { segment: 2, title: "שם מקטע 2", summary: "תיאור קצר למקטע 2 (מידע נוסף יתווסף בהמשך).", imageUrl: segmentImageUrl(2) },
+  { segment: 3, title: "שם מקטע 3", summary: "תיאור קצר למקטע 3 (מידע נוסף יתווסף בהמשך).", imageUrl: segmentImageUrl(3) },
+  { segment: 4, title: "שם מקטע 4", summary: "תיאור קצר למקטע 4 (מידע נוסף יתווסף בהמשך).", imageUrl: segmentImageUrl(4) },
+  { segment: 5, title: "שם מקטע 5", summary: "תיאור קצר למקטע 5 (מידע נוסף יתווסף בהמשך).", imageUrl: segmentImageUrl(5) },
+  { segment: 6, title: "שם מקטע 6", summary: "תיאור קצר למקטע 6 (מידע נוסף יתווסף בהמשך).", imageUrl: segmentImageUrl(6) },
 ];
 
 function getSegmentMeta(seg) {
@@ -124,7 +128,11 @@ function buildSegList(segmentsIndex, selectSegment) {
 
     const image = document.createElement("div");
     image.className = "segImage";
-    image.textContent = "תמונה";
+    const imageEl = document.createElement("img");
+    imageEl.src = meta.imageUrl || segmentImageUrl(meta.segment);
+    imageEl.alt = `תמונה למקטע ${meta.segment}`;
+    imageEl.loading = "lazy";
+    image.appendChild(imageEl);
 
     const content = document.createElement("div");
     content.className = "segContent";

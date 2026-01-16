@@ -116,12 +116,14 @@ body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; color: 
   height: 72px;
   border-radius: 12px;
   background: linear-gradient(135deg, rgba(37,99,235,0.14), rgba(14,165,233,0.1));
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 800;
-  color: rgba(37,99,235,0.75);
   border: 1px dashed rgba(37,99,235,0.3);
+  overflow: hidden;
+}
+.segImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .segContent { display: grid; gap: 4px; }
 .segTitle { font-weight: 900; font-size: 13px; }
