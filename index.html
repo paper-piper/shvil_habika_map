@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>מפת שביל הבקעה</title>
+
+  <!-- Mapbox GL JS -->
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css" rel="stylesheet" />
+
+  <!-- Turf for lengths/bounds -->
+  <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+
+  <!-- Local styles -->
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div class="panel" id="panel">
+    <div class="panelHeader">
+      <div class="titleWrap">
+        <div class="title">שביל הבקעה — מפה אינטראקטיבית</div>
+        <div class="subtitle" id="subtitle">טוען…</div>
+      </div>
+
+      <div class="headerBtns">
+        <button class="iconBtn" id="togglePanel" title="הצג/הסתר">☰</button>
+      </div>
+    </div>
+
+    <div class="panelBody" id="panelBody">
+      <div class="section">
+        <div class="sectionTitle"><span>סטטיסטיקות</span></div>
+        <div class="statRow">
+          <div class="pill" id="totalLenPill">סה״כ: —</div>
+          <div class="pill" id="selLenPill">מקטע: —</div>
+          <div class="pill" id="poiCountPill">נק׳: —</div>
+        </div>
+        <div class="hint" style="margin-top:8px;">
+          טיפ: במחשב — השתמשו ב־Ctrl/⌘ + גלילה כדי לזום בלי “לחטוף” את הדף.
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section">
+        <div class="sectionTitle">
+          <span>סינון נקודות עניין</span>
+          <button class="iconBtn" id="clearFilters" title="נקה סינון">נקה</button>
+        </div>
+
+        <div class="row" style="margin-bottom:8px;">
+          <select class="select" id="poiType">
+            <option value="__all__">כל הסוגים</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <input class="input" id="poiSearch" placeholder="חיפוש לפי שם נקודה…" />
+        </div>
+
+        <div class="hint" style="margin-top:8px;">
+          לחיצה על נקודה במפה תפתח תיאור. החיפוש מסנן לפי <b>name</b>.
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section">
+        <div class="sectionTitle">
+          <span>מקטעים</span>
+          <span class="hint">לחיצה = זום למקטע</span>
+        </div>
+        <div class="segList" id="segList"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section">
+        <div class="sectionTitle"><span>פעולות</span></div>
+        <div class="actions">
+          <button class="btn primary" id="fitAllBtn">📍 הצג את כל השביל</button>
+          <button class="btn" id="locateBtn">🧭 המיקום שלי</button>
+          <a class="btn" id="downloadGpxBtn" href="./data/trail.gpx" download style="display:none;">⬇️ הורדת GPX</a>
+          <button class="btn danger" id="resetBtn">↩︎ איפוס</button>
+        </div>
+        <div class="hint" style="margin-top:8px;">
+          ניווט בשטח: הכי טוב לפתוח את ה־GPX באפליקציית ניווט (למשל AllTrails/Wikiloc) כדי לעבוד גם Offline.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="loader" id="loader">
+    <div class="loaderCard">
+      <div class="spinner"></div>
+      <div style="font-weight:900;">טוען את מפת שביל הבקעה…</div>
+      <div style="font-size:12px; color: rgba(0,0,0,0.65);">עוד רגע וזה בא.</div>
+    </div>
+  </div>
+
+  <!-- Local app (ES module) -->
+  <script type="module" src="./assets/app.js"></script>
+</body>
+</html>
