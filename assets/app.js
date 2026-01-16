@@ -177,11 +177,23 @@ function setActiveSegUI(seg) {
 }
 
 function setSegmentMode(isSingle) {
-  $("panel").classList.toggle("single-mode", isSingle);
   $("segFocus").classList.toggle("active", isSingle);
   $("segList").classList.toggle("hidden", isSingle);
   $("segDetails").classList.toggle("hidden", isSingle);
   $("segHint").classList.toggle("hidden", isSingle);
+}
+
+function applyPoiFilters(map) {
+  if (!map.getLayer("poi-layer")) return;
+
+  const typeVal = $("poiType").value;
+  const q = safeStr($("poiSearch").value).toLowerCase();
+
+  const filters = ["all", ["==", ["geometry-type"], "Point"]];
+  if (typeVal && typeVal !== "__all__") filters.push(["==", ["get", "type"], typeVal]);
+  if (q) filters.push([">=", ["index-of", q, ["downcase", ["coalesce", ["get", "name"], ""]]], 0]);
+
+  map.setFilter("poi-layer", filters);
 }
 
 function initLayersOnce(map, trailData, selectSegment) {
@@ -336,8 +348,6 @@ async function boot() {
     $("segFocusMeta").textContent = "אורך: —";
     $("segFocusText").textContent = "כאן יוצג מידע נוסף על המקטע שנבחר.";
     $("segFocusSwatch").style.background = "transparent";
-    $("segFocusImage").src = "";
-    $("segFocusImage").alt = "";
     updateSubtitle("מוצג כל השביל.");
   }
 
@@ -359,7 +369,6 @@ async function boot() {
     const title = `מקטע ${seg} — ${meta?.title ?? "שם המקטע"}`;
     const lengthText = `אורך משוער: ${fmtKm(entry?.lengthKm ?? NaN)}`;
     const summaryText = meta?.summary ?? "מידע נוסף על המקטע יופיע כאן.";
-    const imageUrl = meta?.imageUrl || segmentImageUrl(seg);
 
     $("segDetailTitle").textContent = title;
     $("segDetailMeta").textContent = lengthText;
@@ -368,8 +377,6 @@ async function boot() {
     $("segFocusMeta").textContent = lengthText;
     $("segFocusText").textContent = summaryText;
     $("segFocusSwatch").style.background = segColor(seg);
-    $("segFocusImage").src = imageUrl;
-    $("segFocusImage").alt = `תמונה למקטע ${seg}`;
 
     if (zoom && entry?.bbox) fitBounds(map, entry.bbox, 60);
     updateSubtitle(`נבחר מקטע ${seg}.`);
@@ -394,6 +401,10 @@ async function boot() {
     $("fitAllBtn").addEventListener("click", () => {
       clearSegmentSelection();
       if (wholeBbox) fitBounds(map, wholeBbox, 60);
+    });
+
+    $("segFocusBack").addEventListener("click", () => {
+      clearSegmentSelection();
     });
 
     $("segFocusBack").addEventListener("click", () => {
