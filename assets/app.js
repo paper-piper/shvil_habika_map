@@ -309,13 +309,6 @@ async function boot() {
   map.addControl(new mapboxgl.NavigationControl(), "top-left");
   map.addControl(new mapboxgl.FullscreenControl(), "top-left");
 
-  const geolocate = new mapboxgl.GeolocateControl({
-    positionOptions: { enableHighAccuracy: true },
-    trackUserLocation: true,
-    showUserHeading: true
-  });
-  map.addControl(geolocate, "top-left");
-
   const gpxOk = await headOk(GPX_URL);
   const dlBtn = $("downloadGpxBtn");
   if (gpxOk) { dlBtn.style.display = "inline-flex"; dlBtn.href = GPX_URL; }
@@ -394,51 +387,16 @@ async function boot() {
 
     buildSegList(segmentsIndex, selectSegment);
 
-    const types = Array.from(new Set(
-      trailData.features
-        .filter(f => f.geometry?.type === "Point")
-        .map(f => safeStr(f.properties?.type))
-        .filter(Boolean)
-    )).sort((a,b) => a.localeCompare(b, "he"));
-
-    const sel = $("poiType");
-    while (sel.options.length > 1) sel.remove(1);
-    for (const t of types) {
-      const opt = document.createElement("option");
-      opt.value = t; opt.textContent = t;
-      sel.appendChild(opt);
-    }
-
     initLayersOnce(map, trailData, selectSegment);
     if (wholeBbox) fitBounds(map, wholeBbox, 60);
-
-    $("poiType").addEventListener("change", () => applyPoiFilters(map));
-    $("poiSearch").addEventListener("input", () => applyPoiFilters(map));
-
-    $("clearFilters").addEventListener("click", () => {
-      $("poiType").value = "__all__";
-      $("poiSearch").value = "";
-      applyPoiFilters(map);
-      showToast("סינון נקודות נוקה.");
-    });
 
     $("fitAllBtn").addEventListener("click", () => {
       clearSegmentSelection();
       if (wholeBbox) fitBounds(map, wholeBbox, 60);
     });
 
-    $("locateBtn").addEventListener("click", () => {
-      try { geolocate.trigger(); }
-      catch { showToast("לא הצלחתי לקבל מיקום. בדוק הרשאות GPS בדפדפן."); }
-    });
-
-    $("resetBtn").addEventListener("click", () => {
+    $("segFocusBack").addEventListener("click", () => {
       clearSegmentSelection();
-      $("poiType").value = "__all__";
-      $("poiSearch").value = "";
-      applyPoiFilters(map);
-      if (wholeBbox) fitBounds(map, wholeBbox, 60);
-      showToast("אופס. חזרנו למצב ההתחלתי.");
     });
 
     $("segFocusBack").addEventListener("click", () => {
@@ -452,9 +410,7 @@ async function boot() {
       panelBody.style.display = collapsed ? "none" : "block";
     });
 
-    applyPoiFilters(map);
-
-    updateSubtitle("מוכן. בחר מקטע או סנן נקודות.");
+    updateSubtitle("מוכן. בחר מקטע.");
     setLoading(false);
 
   } catch (err) {

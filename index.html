@@ -46,30 +46,7 @@
 
       <div class="divider"></div>
 
-      <div class="section">
-        <div class="sectionTitle">
-          <span>סינון נקודות עניין</span>
-          <button class="iconBtn" id="clearFilters" title="נקה סינון">נקה</button>
-        </div>
-
-        <div class="row" style="margin-bottom:8px;">
-          <select class="select" id="poiType">
-            <option value="__all__">כל הסוגים</option>
-          </select>
-        </div>
-
-        <div class="row">
-          <input class="input" id="poiSearch" placeholder="חיפוש לפי שם נקודה…" />
-        </div>
-
-        <div class="hint" style="margin-top:8px;">
-          לחיצה על נקודה במפה תפתח תיאור. החיפוש מסנן לפי <b>name</b>.
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="section">
+      <div class="section segSection">
         <div class="sectionTitle">
           <span>מקטעים</span>
           <span class="hint" id="segHint">לחיצה על כרטיס תתמקד במקטע</span>
@@ -103,12 +80,7 @@
         <div class="sectionTitle"><span>פעולות</span></div>
         <div class="actions">
           <button class="btn primary" id="fitAllBtn">📍 הצג את כל השביל</button>
-          <button class="btn" id="locateBtn">🧭 המיקום שלי</button>
           <a class="btn" id="downloadGpxBtn" href="./data/trail.gpx" download style="display:none;">⬇️ הורדת GPX</a>
-          <button class="btn danger" id="resetBtn">↩︎ איפוס</button>
-        </div>
-        <div class="hint" style="margin-top:8px;">
-          ניווט בשטח: הכי טוב לפתוח את ה־GPX באפליקציית ניווט (למשל AllTrails/Wikiloc) כדי לעבוד גם Offline.
         </div>
       </div>
     </div>
