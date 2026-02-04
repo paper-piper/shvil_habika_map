@@ -57,13 +57,129 @@ function renderSegmentImage(container, seg, title) {
   container.appendChild(img);
 }
 
+function renderLodging(container, lodgingList = []) {
+  container.innerHTML = "";
+
+  const details = document.createElement("details");
+  details.className = "segAccordion";
+
+  const summary = document.createElement("summary");
+  summary.textContent = "לינה";
+  details.appendChild(summary);
+
+  const content = document.createElement("div");
+  content.className = "segAccordionContent";
+
+  if (!lodgingList.length) {
+    const empty = document.createElement("div");
+    empty.className = "segEmpty";
+    empty.textContent = "אין מקומות לינה במקטע זה עדיין.";
+    content.appendChild(empty);
+  } else {
+    const grid = document.createElement("div");
+    grid.className = "lodgingGrid";
+
+    lodgingList.forEach(place => {
+      const card = document.createElement("div");
+      card.className = "lodgingCard";
+
+      const imageWrap = document.createElement("div");
+      imageWrap.className = "lodgingImage";
+
+      const img = document.createElement("img");
+      img.src = place.image;
+      img.alt = place.title || "מקום לינה";
+      img.loading = "lazy";
+      img.addEventListener("error", () => {
+        imageWrap.textContent = "אין תמונה";
+      });
+
+      imageWrap.appendChild(img);
+
+      const body = document.createElement("div");
+      body.className = "lodgingBody";
+
+      const title = document.createElement("div");
+      title.className = "lodgingTitle";
+      title.textContent = place.title || "מקום לינה";
+
+      const description = document.createElement("div");
+      description.className = "lodgingDesc";
+      description.textContent = place.description || "אין תיאור.";
+
+      const link = document.createElement("a");
+      link.className = "lodgingLink";
+      link.href = place.link || "#";
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "לצפייה באתר";
+
+      body.appendChild(title);
+      body.appendChild(description);
+      body.appendChild(link);
+
+      card.appendChild(imageWrap);
+      card.appendChild(body);
+      grid.appendChild(card);
+    });
+
+    content.appendChild(grid);
+  }
+
+  details.appendChild(content);
+  container.appendChild(details);
+}
+
 const SEGMENT_META = [
-  { segment: 1, title: "ארץ המעיינות", summary: "זהו המקטע המהנה ביותר בשביל,ביקור במספר מעיינות יהפהיפיים עם פינות ישיבה וצל." },
-  { segment: 2, title: "ממחולה לרועי", summary: "תיאור קצר למקטע 2 (מידע נוסף יתווסף בהמשך)." },
-  { segment: 3, title: "מרועי לגדי", summary: "תיאור קצר למקטע 3 (מידע נוסף יתווסף בהמשך)." },
-  { segment: 4, title: "מגדי  לפצאל", summary: "תיאור קצר למקטע 4 (מידע נוסף יתווסף בהמשך)." },
-  { segment: 5, title: "מפצאל לחוות מלאכי השלום", summary: "תיאור קצר למקטע 5 (מידע נוסף יתווסף בהמשך)." },
-  { segment: 6, title: "מחוות מלאכי השלום למבואות יריחו", summary: "תיאור קצר למקטע 6 (מידע נוסף יתווסף בהמשך)." },
+  {
+    segment: 1,
+    title: "ארץ המעיינות",
+    summary: "זהו המקטע המהנה ביותר בשביל,ביקור במספר מעיינות יהפהיפיים עם פינות ישיבה וצל.",
+    lodging: [
+      {
+        image: "./data/images/lodging/sapir-guesthouse.jpg",
+        title: "בית הארחה עין ספיר",
+        description: "חדרים ממוזגים ליד המעיינות, מתאים למשפחות ולמטיילים.",
+        link: "https://example.com/sapir-guesthouse"
+      },
+      {
+        image: "./data/images/lodging/valley-camp.jpg",
+        title: "קמפינג נחל הבקעה",
+        description: "לינה באוהלים, מקלחות חמות ומטבחון בסיסי.",
+        link: "https://example.com/valley-camp"
+      }
+    ]
+  },
+  {
+    segment: 2,
+    title: "ממחולה לרועי",
+    summary: "תיאור קצר למקטע 2 (מידע נוסף יתווסף בהמשך).",
+    lodging: []
+  },
+  {
+    segment: 3,
+    title: "מרועי לגדי",
+    summary: "תיאור קצר למקטע 3 (מידע נוסף יתווסף בהמשך).",
+    lodging: []
+  },
+  {
+    segment: 4,
+    title: "מגדי  לפצאל",
+    summary: "תיאור קצר למקטע 4 (מידע נוסף יתווסף בהמשך).",
+    lodging: []
+  },
+  {
+    segment: 5,
+    title: "מפצאל לחוות מלאכי השלום",
+    summary: "תיאור קצר למקטע 5 (מידע נוסף יתווסף בהמשך).",
+    lodging: []
+  },
+  {
+    segment: 6,
+    title: "מחוות מלאכי השלום למבואות יריחו",
+    summary: "תיאור קצר למקטע 6 (מידע נוסף יתווסף בהמשך).",
+    lodging: []
+  },
 ];
 
 let segmentMeta = SEGMENT_META;
@@ -459,6 +575,7 @@ async function boot() {
     $("segFocusTitle").textContent = "בחרו מקטע להצגת מידע.";
     $("segFocusMeta").textContent = "אורך: —";
     $("segFocusText").textContent = "כאן יוצג מידע נוסף על המקטע שנבחר.";
+    renderLodging($("segFocusLodging"), []);
     $("segFocusSwatch").style.background = "transparent";
     updateSubtitle(`מוצג כל השביל — ${MODE_CONFIG[currentMode].label}.`);
   }
@@ -490,6 +607,7 @@ async function boot() {
     $("segFocusText").textContent = summaryText;
     $("segFocusSwatch").style.background = segColor(seg);
     renderSegmentImage($("segFocusImage"), seg, meta?.title);
+    renderLodging($("segFocusLodging"), meta?.lodging ?? []);
 
     if (zoom && entry?.bbox) fitBounds(map, entry.bbox, 60);
     updateSubtitle(`נבחר מקטע ${seg} — ${MODE_CONFIG[currentMode].label}.`);
