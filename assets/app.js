@@ -1,10 +1,20 @@
 import {
   MAPBOX_ACCESS_TOKEN,
   DATA_URL,
+  BICYCLE_DATA_URL,
   GPX_URL,
   SEG_COLORS,
   SEG_OUTLINE,
   FALLBACK_COLOR,
+  SEG_COLORS_BIKE,
+  SEG_OUTLINE_BIKE,
+  FALLBACK_COLOR_BIKE,
+  HIGHLIGHT_COLOR,
+  HIGHLIGHT_COLOR_BIKE,
+  POI_COLOR,
+  POI_STROKE,
+  POI_COLOR_BIKE,
+  POI_STROKE_BIKE,
   LOAD_TIMEOUT_MS,
   DEFAULT_VIEW,
 } from "./config.js";
@@ -24,7 +34,9 @@ function fmtKm(km) {
   return (Math.round(km * 10) / 10).toFixed(1) + " ק״מ";
 }
 function safeStr(v) { return (v ?? "").toString().trim(); }
-function segColor(seg) { return SEG_COLORS[seg] || FALLBACK_COLOR; }
+let activeColors = SEG_COLORS;
+let activeFallback = FALLBACK_COLOR;
+function segColor(seg) { return activeColors[seg] || activeFallback; }
 function segmentImageSrc(seg) {
   const num = String(seg).padStart(2, "0");
   return `./data/images/segment-${num}.jpg`;
@@ -60,6 +72,29 @@ function getSegmentMeta(seg) {
   return segmentMeta.find(item => Number(item.segment) === Number(seg));
 }
 
+const MODE_CONFIG = {
+  hike: {
+    label: "מסלול רגלי",
+    dataUrl: DATA_URL,
+    colors: SEG_COLORS,
+    outline: SEG_OUTLINE,
+    fallback: FALLBACK_COLOR,
+    highlight: HIGHLIGHT_COLOR,
+    poiColor: POI_COLOR,
+    poiStroke: POI_STROKE,
+  },
+  bike: {
+    label: "מסלול אופניים",
+    dataUrl: BICYCLE_DATA_URL,
+    colors: SEG_COLORS_BIKE,
+    outline: SEG_OUTLINE_BIKE,
+    fallback: FALLBACK_COLOR_BIKE,
+    highlight: HIGHLIGHT_COLOR_BIKE,
+    poiColor: POI_COLOR_BIKE,
+    poiStroke: POI_STROKE_BIKE,
+  }
+};
+
 async function headOk(url) {
   try {
     const res = await fetch(url, { method: "HEAD", cache: "no-store" });
@@ -93,6 +128,25 @@ async function withTimeout(promise, ms, label) {
 
 function fitBounds(map, bbox, padding = 50) {
   map.fitBounds([[bbox[0], bbox[1]],[bbox[2], bbox[3]]], { padding, duration: 650 });
+}
+
+function buildTrailColorExpression(colors, fallback) {
+  return [
+    "case",
+    ["has", "segment"],
+    [
+      "match",
+      ["get", "segment"],
+      1, colors[1],
+      2, colors[2],
+      3, colors[3],
+      4, colors[4],
+      5, colors[5],
+      6, colors[6],
+      fallback
+    ],
+    fallback
+  ];
 }
 
 function computeIndexes(geojson) {
@@ -254,6 +308,25 @@ function applyPoiFilters(map) {
   map.setFilter("poi-layer", filters);
 }
 
+function applyPalette(map, palette) {
+  activeColors = palette.colors;
+  activeFallback = palette.fallback;
+
+  if (map.getLayer("trail-halo")) {
+    map.setPaintProperty("trail-halo", "line-color", palette.outline);
+  }
+  if (map.getLayer("trail-base")) {
+    map.setPaintProperty("trail-base", "line-color", buildTrailColorExpression(palette.colors, palette.fallback));
+  }
+  if (map.getLayer("trail-highlight")) {
+    map.setPaintProperty("trail-highlight", "line-color", palette.highlight);
+  }
+  if (map.getLayer("poi-layer")) {
+    map.setPaintProperty("poi-layer", "circle-color", palette.poiColor);
+    map.setPaintProperty("poi-layer", "circle-stroke-color", palette.poiStroke);
+  }
+}
+
 function initLayersOnce(map, trailData, selectSegment) {
   if (map.getSource("trail-src")) return;
 
@@ -281,22 +354,7 @@ function initLayersOnce(map, trailData, selectSegment) {
     paint: {
       "line-width": 4,
       "line-opacity": 0.85,
-      "line-color": [
-        "case",
-        ["has", "segment"],
-        [
-          "match",
-          ["get", "segment"],
-          1, segColor(1),
-          2, segColor(2),
-          3, segColor(3),
-          4, segColor(4),
-          5, segColor(5),
-          6, segColor(6),
-          FALLBACK_COLOR
-        ],
-        FALLBACK_COLOR
-      ]
+      "line-color": buildTrailColorExpression(SEG_COLORS, FALLBACK_COLOR)
     }
   });
 
@@ -309,7 +367,7 @@ function initLayersOnce(map, trailData, selectSegment) {
     paint: {
       "line-width": 7,
       "line-opacity": 0.95,
-      "line-color": "#283518"
+      "line-color": HIGHLIGHT_COLOR
     }
   });
 
@@ -320,9 +378,9 @@ function initLayersOnce(map, trailData, selectSegment) {
     filter: ["==", ["geometry-type"], "Point"],
     paint: {
       "circle-radius": 6,
-      "circle-color": "#283518",
+      "circle-color": POI_COLOR,
       "circle-stroke-width": 2,
-      "circle-stroke-color": "#FEFAE1"
+      "circle-stroke-color": POI_STROKE
     }
   });
 
@@ -381,16 +439,11 @@ async function boot() {
   if (gpxOk) { dlBtn.style.display = "inline-flex"; dlBtn.href = GPX_URL; }
   else dlBtn.style.display = "none";
 
-  const dataPromise = (async () => {
-    const res = await fetch(DATA_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error(`GeoJSON HTTP ${res.status}`);
-    return await res.json();
-  })();
-
   const mapPromise = waitForMapLoaded(map);
 
   let segmentsIndex = [];
   let wholeBbox = null;
+  let currentMode = "hike";
 
   function clearSegmentSelection() {
     setActiveSegUI(null);
@@ -407,7 +460,7 @@ async function boot() {
     $("segFocusMeta").textContent = "אורך: —";
     $("segFocusText").textContent = "כאן יוצג מידע נוסף על המקטע שנבחר.";
     $("segFocusSwatch").style.background = "transparent";
-    updateSubtitle("מוצג כל השביל.");
+    updateSubtitle(`מוצג כל השביל — ${MODE_CONFIG[currentMode].label}.`);
   }
 
   function selectSegment(seg, zoom) {
@@ -439,11 +492,26 @@ async function boot() {
     renderSegmentImage($("segFocusImage"), seg, meta?.title);
 
     if (zoom && entry?.bbox) fitBounds(map, entry.bbox, 60);
-    updateSubtitle(`נבחר מקטע ${seg}.`);
+    updateSubtitle(`נבחר מקטע ${seg} — ${MODE_CONFIG[currentMode].label}.`);
   }
 
-  try {
-    const [trailData] = await withTimeout(Promise.all([dataPromise, mapPromise]), LOAD_TIMEOUT_MS, "load map + geojson");
+  function updateModeToggleUI() {
+    const toggleBtn = $("modeToggle");
+    if (!toggleBtn) return;
+    toggleBtn.dataset.mode = currentMode;
+    toggleBtn.title = currentMode === "hike" ? "מעבר למסלול אופניים" : "מעבר למסלול רגלי";
+    toggleBtn.setAttribute("aria-label", toggleBtn.title);
+  }
+
+  async function loadTrailData(modeKey, { fitToBounds } = {}) {
+    const mode = MODE_CONFIG[modeKey];
+    if (!mode) return;
+    setLoading(true);
+    updateSubtitle(`טוען ${mode.label}…`);
+
+    const res = await fetch(mode.dataUrl, { cache: "no-store" });
+    if (!res.ok) throw new Error(`GeoJSON HTTP ${res.status}`);
+    const trailData = await res.json();
 
     const { totalKm, segArr, allBbox, pointCount, segmentMap } = computeIndexes(trailData);
     remapTrailSegments(trailData, segmentMap);
@@ -455,10 +523,22 @@ async function boot() {
     $("poiCountPill").textContent = `נק׳: ${pointCount}`;
     $("selLenPill").textContent = "מקטע: —";
 
+    applyPalette(map, mode);
     buildSegList(segmentsIndex, selectSegment);
 
     initLayersOnce(map, trailData, selectSegment);
-    if (wholeBbox) fitBounds(map, wholeBbox, 60);
+    const source = map.getSource("trail-src");
+    if (source) source.setData(trailData);
+
+    if (fitToBounds && wholeBbox) fitBounds(map, wholeBbox, 60);
+    clearSegmentSelection();
+    updateSubtitle(`מוכן. ${mode.label}.`);
+    setLoading(false);
+  }
+
+  try {
+    await withTimeout(mapPromise, LOAD_TIMEOUT_MS, "load map");
+    await withTimeout(loadTrailData("hike", { fitToBounds: true }), LOAD_TIMEOUT_MS, "load geojson");
 
     $("fitAllBtn").addEventListener("click", () => {
       clearSegmentSelection();
@@ -480,8 +560,13 @@ async function boot() {
       panelBody.style.display = collapsed ? "none" : "block";
     });
 
-    updateSubtitle("מוכן. בחר מקטע.");
-    setLoading(false);
+    updateModeToggleUI();
+    $("modeToggle").addEventListener("click", async () => {
+      const nextMode = currentMode === "hike" ? "bike" : "hike";
+      currentMode = nextMode;
+      updateModeToggleUI();
+      await withTimeout(loadTrailData(currentMode, { fitToBounds: true }), LOAD_TIMEOUT_MS, "load mode");
+    });
 
   } catch (err) {
     console.error(err);
@@ -489,10 +574,10 @@ async function boot() {
 
     const msg = String(err?.message || err);
     if (msg.includes("Timeout")) {
-      showToast("הטעינה לוקחת יותר מדי זמן. בדוק שיש token תקין וש־data/trail.geojson נגיש.", 9000);
+      showToast("הטעינה לוקחת יותר מדי זמן. בדוק שיש token תקין ושקובצי ה־GeoJSON נגישים.", 9000);
       updateSubtitle("תקלה בטעינה (Timeout).");
     } else if (msg.includes("GeoJSON HTTP 404") || msg.includes("404")) {
-      showToast("לא מצאתי את data/trail.geojson בפריסה. בדוק שהקובץ נמצא בתיקייה data בשורש האתר.", 9000);
+      showToast("לא מצאתי את קובץ ה־GeoJSON בפריסה. בדוק שהקובץ נמצא בתיקייה data בשורש האתר.", 9000);
       updateSubtitle("שגיאה: GeoJSON לא נמצא.");
     } else if (msg.toLowerCase().includes("access token")) {
       showToast("נראה שה-token של Mapbox לא תקין/חסר. הדבק token ציבורי (pk...).", 9000);

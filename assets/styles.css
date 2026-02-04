@@ -61,6 +61,20 @@ body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; color: 
   font-size: 12px;
 }
 .iconBtn:hover { background: #f4f1dd; }
+.modeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.modeIcon {
+  font-size: 14px;
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
+}
+.modeToggle[data-mode="hike"] .modeIcon-hike,
+.modeToggle[data-mode="bike"] .modeIcon-bike {
+  opacity: 1;
+}
 
 .panelBody {
   padding: 12px;
