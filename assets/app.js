@@ -54,8 +54,10 @@ const SEGMENT_META = [
   { segment: 6, title: "מחוות מלאכי השלום למבואות יריחו", summary: "תיאור קצר למקטע 6 (מידע נוסף יתווסף בהמשך)." },
 ];
 
+let segmentMeta = SEGMENT_META;
+
 function getSegmentMeta(seg) {
-  return SEGMENT_META.find(item => Number(item.segment) === Number(seg));
+  return segmentMeta.find(item => Number(item.segment) === Number(seg));
 }
 
 async function headOk(url) {
@@ -128,15 +130,59 @@ function computeIndexes(geojson) {
     ];
   }
 
-  const segArr = [...perSeg.values()].filter(x => x.segment !== 0).sort((a,b)=>a.segment-b.segment);
-  return { totalKm, segArr, allBbox: allB, pointCount: pointFeatures.length };
+  const segArrRaw = [...perSeg.values()].filter(x => x.segment !== 0);
+  const sortedByNorth = segArrRaw
+    .map(entry => ({
+      ...entry,
+      northLat: entry.bbox ? entry.bbox[3] : -Infinity
+    }))
+    .sort((a, b) => b.northLat - a.northLat);
+
+  const segmentMap = new Map();
+  const segArr = sortedByNorth.map((entry, index) => {
+    const newSegment = index + 1;
+    segmentMap.set(entry.segment, newSegment);
+    return {
+      ...entry,
+      originalSegment: entry.segment,
+      segment: newSegment
+    };
+  });
+
+  return {
+    totalKm,
+    segArr,
+    allBbox: allB,
+    pointCount: pointFeatures.length,
+    segmentMap
+  };
+}
+
+function remapSegmentMeta(segmentMap) {
+  return SEGMENT_META
+    .map(meta => {
+      const mapped = segmentMap.get(meta.segment);
+      if (!mapped) return { ...meta };
+      return { ...meta, originalSegment: meta.segment, segment: mapped };
+    })
+    .sort((a, b) => a.segment - b.segment);
+}
+
+function remapTrailSegments(trailData, segmentMap) {
+  trailData.features.forEach(feature => {
+    const current = feature.properties?.segment;
+    const mapped = segmentMap.get(Number(current));
+    if (mapped && feature.properties) {
+      feature.properties.segment = mapped;
+    }
+  });
 }
 
 function buildSegList(segmentsIndex, selectSegment) {
   const segListEl = $("segList");
   segListEl.innerHTML = "";
 
-  SEGMENT_META.forEach(meta => {
+  segmentMeta.forEach(meta => {
     const entry = segmentsIndex.find(s => Number(s.segment) === Number(meta.segment));
     const div = document.createElement("div");
     div.className = "segCard";
@@ -399,7 +445,9 @@ async function boot() {
   try {
     const [trailData] = await withTimeout(Promise.all([dataPromise, mapPromise]), LOAD_TIMEOUT_MS, "load map + geojson");
 
-    const { totalKm, segArr, allBbox, pointCount } = computeIndexes(trailData);
+    const { totalKm, segArr, allBbox, pointCount, segmentMap } = computeIndexes(trailData);
+    remapTrailSegments(trailData, segmentMap);
+    segmentMeta = remapSegmentMeta(segmentMap);
     segmentsIndex = segArr;
     wholeBbox = allBbox;
 
