@@ -152,7 +152,7 @@ const SEGMENT_META = [
   },
   {
     segment: 2,
-    title: "ממחולה לרועי",
+    title: "שדמות מחולה לרועי",
     summary: "תיאור קצר למקטע 2 (מידע נוסף יתווסף בהמשך).",
     lodging: []
   },
@@ -183,6 +183,22 @@ const SEGMENT_META = [
 ];
 
 let segmentMeta = SEGMENT_META;
+
+function syncTrailSegmentsWithGeo(trailData) {
+  const daySegments = trailData.features
+    .filter(feature => feature.geometry?.type === "LineString")
+    .filter(feature => /מקטע\s+יום/.test(safeStr(feature.properties?.name)))
+    .map(feature => {
+      const bbox = turf.bbox(feature);
+      return { feature, northLat: bbox[3] };
+    })
+    .sort((a, b) => b.northLat - a.northLat);
+
+  daySegments.forEach(({ feature }, index) => {
+    if (!feature.properties) feature.properties = {};
+    feature.properties.segment = index + 1;
+  });
+}
 
 function getSegmentMeta(seg) {
   return segmentMeta.find(item => Number(item.segment) === Number(seg));
@@ -630,6 +646,7 @@ async function boot() {
     const res = await fetch(mode.dataUrl, { cache: "no-store" });
     if (!res.ok) throw new Error(`GeoJSON HTTP ${res.status}`);
     const trailData = await res.json();
+    syncTrailSegmentsWithGeo(trailData);
 
     const { totalKm, segArr, allBbox, pointCount, segmentMap } = computeIndexes(trailData);
     remapTrailSegments(trailData, segmentMap);
