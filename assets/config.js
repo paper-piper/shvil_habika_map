@@ -2,7 +2,15 @@ export const MAPBOX_ACCESS_TOKEN = "pk.eyJ1IjoieW9uaWxlMSIsImEiOiJjbWpnN29ub24wd
 
 export const DATA_URL = "./data/trail.geojson";
 export const BICYCLE_DATA_URL = "./data/trail-bike.geojson";
+export const POI_DATA_URL = "./data/poi.geojson";
 export const GPX_URL  = "./data/trail.gpx";
+export const FIRE_ZONE_INFO_URL = "https://www.idf.il/";
+
+export const POI_ICON_URLS = {
+  water_source: "./assets/icons/poi-water.svg",
+  spring: "./assets/icons/poi-spring.svg",
+  container: "./assets/icons/poi-container.svg"
+};
 
 export const SEG_COLORS = {
   1: "#6F7D4E",

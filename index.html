@@ -67,6 +67,7 @@
             <div class="segFocusInfo">
               <div class="segFocusTitle" id="segFocusTitle">בחרו מקטע להצגת מידע.</div>
               <div class="segFocusMeta" id="segFocusMeta">אורך: —</div>
+              <div class="fireBadge hidden" id="segFocusFireBadge">⚠ שטח אש</div>
               <div class="segFocusBadge">
                 <span class="segSwatch" id="segFocusSwatch"></span>
                 <span>מידע נוסף</span>
@@ -75,11 +76,27 @@
           </div>
           <div class="segFocusText" id="segFocusText">כאן יוצג מידע נוסף על המקטע שנבחר.</div>
           <div class="segFocusLodging" id="segFocusLodging"></div>
+          <div class="segFocusRavshatz" id="segFocusRavshatz"></div>
+          <div class="segFocusSafety" id="segFocusSafety"></div>
           <button class="btn" id="segFocusBack">⬅ חזרה לכל המקטעים</button>
         </div>
       </div>
 
+
       <div class="divider"></div>
+
+      <div class="section" id="poiControlsSection">
+        <div class="sectionTitle"><span>נקודות עניין</span></div>
+        <div class="row" style="margin-bottom:8px;">
+          <select class="select" id="poiType">
+            <option value="__all__">כל הקטגוריות</option>
+            <option value="water_source">מקורות מים</option>
+            <option value="spring">מעיינות</option>
+            <option value="container">מכולות</option>
+          </select>
+        </div>
+        <input class="input" id="poiSearch" type="search" placeholder="חיפוש נקודת עניין לפי שם" />
+      </div>
 
       <div class="section">
         <div class="sectionTitle"><span>פעולות</span></div>

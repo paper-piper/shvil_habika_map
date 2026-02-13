@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {"type": "Point", "coordinates": [35.506, 32.370]},
+      "properties": {
+        "name": "ברז מים מחולה",
+        "category": "water_source",
+        "description": "נקודת מילוי מים סמוך למרכז היישוב.",
+        "notes": "פתוח רוב שעות היום"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {"type": "Point", "coordinates": [35.488, 32.315]},
+      "properties": {
+        "name": "עין רועי",
+        "category": "spring",
+        "description": "מעיין קטן לצד המסלול.",
+        "notes": "לעיתים הזרימה חלשה בקיץ"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {"type": "Point", "coordinates": [35.458, 32.246]},
+      "properties": {
+        "name": "מכולת גדי",
+        "category": "container",
+        "description": "מכולת מקומית להצטיידות.",
+        "notes": "סגור בשישי אחה״צ"
+      }
+    }
+  ]
+}
